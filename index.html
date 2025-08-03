@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vishnu Hast Kala Kendra - Premium marble moorti (idol) and idol manufacturer located in Bhedaghat, Jabalpur, Madhya Pradesh, India. Specializing in handcrafted Hindu marble statues, stone carvings, and custom busts.">
+    <title>Vishnu Hast Kala Kendra - Marble Moorti & Idol Manufacturer</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="./assets/images/favicon.ico" type="image/x-icon">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f59e0b',
+                        secondary: '#4b5563',
+                        accent: '#d97706',
+                        light: '#f3f4f6',
+                        dark: '#1f2937'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        serif: ['Merriweather', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.12.16/dist/framer-motion.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .hero-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('./assets/images/hero-bg.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- Main App Script -->
+    <script type="text/babel" src="./src/App.js"></script>
+    
+    <!-- Components -->
+    <script type="text/babel" src="./src/components/Navbar.js"></script>
+    <script type="text/babel" src="./src/components/Footer.js"></script>
+    <script type="text/babel" src="./src/components/ProductCard.js"></script>
+    <script type="text/babel" src="./src/components/TestimonialCard.js"></script>
+    <script type="text/babel" src="./src/components/ContactForm.js"></script>
+    <script type="text/babel" src="./src/components/BlogPost.js"></script>
+    
+    <!-- Pages -->
+    <script type="text/babel" src="./src/pages/Home.js"></script>
+    <script type="text/babel" src="./src/pages/About.js"></script>
+    <script type="text/babel" src="./src/pages/Products.js"></script>
+    <script type="text/babel" src="./src/pages/Blog.js"></script>
+    <script type="text/babel" src="./src/pages/Contact.js"></script>
+    <script type="text/babel" src="./src/pages/Dashboard.js"></script>
+    
+    <!-- Initialize App -->
+    <script type="text/babel">
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
