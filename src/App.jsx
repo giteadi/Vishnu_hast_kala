@@ -11,7 +11,7 @@ import Products from "./pages/Products";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
-
+import SingleBlog from './pages/singleBlog';
 const App = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate(); // ✅ Get the navigate function
@@ -50,6 +50,7 @@ const App = () => {
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path='/blog/:id' element={<SingleBlog/>}/>
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
