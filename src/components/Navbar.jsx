@@ -1,7 +1,9 @@
 // Navbar.js - Navigation component
 
-const { useState, useEffect } = React;
-const { motion } = Motion;
+import React, { useState, useEffect } from "react";
+
+import { motion } from 'framer-motion';
+
 
 const Navbar = ({ currentPage, navigateTo }) => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -124,3 +126,5 @@ const Navbar = ({ currentPage, navigateTo }) => {
         </header>
     );
 };
+
+export default Navbar;

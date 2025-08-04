@@ -1,8 +1,9 @@
 // Home.js - Home page component
+import React, { useEffect, useRef } from "react";
 
-const { useEffect, useRef } = React;
-const { motion } = Motion;
-
+import { motion } from 'framer-motion';
+import ProductCard from "../components/ProductCard";
+import TestimonialCard from "../components/TestimonialCard";
 const Home = ({ navigateTo }) => {
     const featuredProductsRef = useRef(null);
     
@@ -389,3 +390,4 @@ const Home = ({ navigateTo }) => {
         </div>
     );
 };
+export default Home;

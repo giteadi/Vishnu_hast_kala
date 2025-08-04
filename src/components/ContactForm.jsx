@@ -1,7 +1,8 @@
 // ContactForm.js - Contact form component
 
-const { useState } = React;
-const { motion } = Motion;
+const { useState } = "React";
+import { motion } from 'framer-motion';
+
 
 const ContactForm = () => {
     const [formData, setFormData] = useState({
@@ -198,3 +199,4 @@ const ContactForm = () => {
         </div>
     );
 };
+export default ContactForm;

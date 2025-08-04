@@ -1,7 +1,8 @@
 // Products.js - Products page component
 
-const { useState, useEffect } = React;
-const { motion } = Motion;
+const { useState, useEffect } = "React";
+import { motion } from 'framer-motion';
+
 
 const Products = ({ navigateTo }) => {
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -468,3 +469,4 @@ const Products = ({ navigateTo }) => {
         </div>
     );
 };
+export default Products;

@@ -1,33 +1,24 @@
-# Node modules
-node_modules/
-
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# OS-specific
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
-
-# Editor-specific
-.vscode/
-.idea/
-*.swp
-
-# Build and uploads
-dist/
-build/
-uploads/
-
-# Environment (INTENTIONALLY not ignoring .env)
-# .env    <-- we are not ignoring this as per your request
-
-# Coverage
-coverage/
-
-# Temp files
-*.tmp
-*.temp
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

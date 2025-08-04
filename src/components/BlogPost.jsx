@@ -1,6 +1,7 @@
 // BlogPost.js - Component for displaying blog posts
 
-const { motion } = Motion;
+import { motion } from 'framer-motion';
+
 
 const BlogPost = ({ post, isDetailed = false, navigateTo }) => {
     const formatDate = (dateString) => {
@@ -168,3 +169,4 @@ const BlogPost = ({ post, isDetailed = false, navigateTo }) => {
         </div>
     );
 };
+export default BlogPost;

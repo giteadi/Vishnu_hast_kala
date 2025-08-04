@@ -1,6 +1,7 @@
 // Footer.js - Footer component for all pages
 
-const { motion } = Motion;
+import { motion } from 'framer-motion';
+
 
 const Footer = ({ navigateTo }) => {
     const currentYear = new Date().getFullYear();
@@ -193,3 +194,5 @@ const Footer = ({ navigateTo }) => {
         </footer>
     );
 };
+
+export default Footer

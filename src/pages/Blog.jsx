@@ -1,31 +1,35 @@
-// Blog.js - Blog page component
+"use client"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { Search, Frown } from "lucide-react"
+import BlogPost from "../components/BlogPost"
+import { useNavigate } from "react-router-dom" // Correct import for react-router-dom
 
-const { useState, useEffect } = React;
-const { motion } = Motion;
+const Blog = () => {
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredPosts, setFilteredPosts] = useState([])
+  const [featuredPost, setFeaturedPost] = useState(null)
+  const navigate = useNavigate() // Use useNavigate from react-router-dom
 
-const Blog = ({ navigateTo }) => {
-    const [selectedCategory, setSelectedCategory] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filteredPosts, setFilteredPosts] = useState([]);
-    const [featuredPost, setFeaturedPost] = useState(null);
-    
-    // Blog categories
-    const categories = [
-        { id: 'all', name: 'All Posts' },
-        { id: 'art', name: 'Art & Culture' },
-        { id: 'craftsmanship', name: 'Craftsmanship' },
-        { id: 'history', name: 'History' },
-        { id: 'tips', name: 'Care Tips' },
-        { id: 'news', name: 'News & Events' }
-    ];
-    
-    // Sample blog posts data
-    const blogPosts = [
-        {
-            id: 1,
-            title: 'The Ancient Art of Marble Carving in India',
-            excerpt: 'Explore the rich history and techniques of marble carving that have been passed down through generations in India.',
-            content: `<p>Marble carving in India has a rich and storied history that dates back thousands of years. From the magnificent Taj Mahal to the intricate temple carvings of Khajuraho, marble has been the medium of choice for many of India's most celebrated artistic achievements.</p>
+  // Blog categories
+  const categories = [
+    { id: "all", name: "All Posts" },
+    { id: "art", name: "Art & Culture" },
+    { id: "craftsmanship", name: "Craftsmanship" },
+    { id: "history", name: "History" },
+    { id: "tips", name: "Care Tips" },
+    { id: "news", name: "News & Events" },
+  ]
+
+  // Sample blog posts data
+  const blogPosts = [
+    {
+      id: 1,
+      title: "The Ancient Art of Marble Carving in India",
+      excerpt:
+        "Explore the rich history and techniques of marble carving that have been passed down through generations in India.",
+      content: `<p>Marble carving in India has a rich and storied history that dates back thousands of years. From the magnificent Taj Mahal to the intricate temple carvings of Khajuraho, marble has been the medium of choice for many of India's most celebrated artistic achievements.</p>
 
 <p>The tradition of marble carving in India can be traced back to the Gupta period (4th to 6th century CE), when artisans began to perfect techniques for working with this challenging material. The art form reached its zenith during the Mughal era, when emperor Shah Jahan commissioned the Taj Mahal, perhaps the world's most famous marble structure.</p>
 
@@ -44,22 +48,23 @@ const Blog = ({ navigateTo }) => {
 <p>At Vishnu Hastkala Kendra, we are committed to preserving these ancient techniques while creating pieces that speak to contemporary aesthetics and needs. Our artisans have trained for decades to master their craft, often beginning their apprenticeships in childhood.</p>
 
 <p>Each piece we create carries with it not just the beauty of the marble itself, but the weight of thousands of years of artistic tradition. When you purchase a marble carving from us, you're not just buying a decorative object - you're becoming part of a living artistic lineage that stretches back through the centuries.</p>`,
-            image: './assets/images/blog1.jpg',
-            category: 'history',
-            author: {
-                name: 'Rajesh Kumar',
-                avatar: './assets/images/author1.jpg',
-                title: 'Master Craftsman'
-            },
-            date: '2023-08-15',
-            readTime: '8 min read',
-            featured: true
-        },
-        {
-            id: 2,
-            title: 'How to Care for Your Marble Statues',
-            excerpt: 'Learn the best practices for maintaining and preserving your marble statues to ensure they remain beautiful for generations.',
-            content: `<p>Marble statues are not just beautiful works of art; they're investments that can last for generations with proper care. Whether you've recently purchased a marble statue from Vishnu Hastkala Kendra or have had one in your family for years, these care tips will help ensure its longevity and beauty.</p>
+      image: "/assets/images/blog1.png",
+      category: "history",
+      author: {
+        name: "Rajesh Kumar",
+        avatar: "/assets/images/author1.png",
+        title: "Master Craftsman",
+      },
+      date: "2023-08-15",
+      readTime: "8 min read",
+      featured: true,
+    },
+    {
+      id: 2,
+      title: "How to Care for Your Marble Statues",
+      excerpt:
+        "Learn the best practices for maintaining and preserving your marble statues to ensure they remain beautiful for generations.",
+      content: `<p>Marble statues are not just beautiful works of art; they're investments that can last for generations with proper care. Whether you've recently purchased a marble statue from Vishnu Hastkala Kendra or have had one in your family for years, these care tips will help ensure its longevity and beauty.</p>
 
 <h3>Regular Cleaning</h3>
 
@@ -106,22 +111,23 @@ const Blog = ({ navigateTo }) => {
 <p>If your statue becomes significantly stained, chipped, or damaged, it's best to consult with professionals. At Vishnu Hastkala Kendra, we offer restoration services for marble statues and can advise on the best approach for your specific piece.</p>
 
 <p>With proper care, your marble statue will continue to bring beauty and joy to your home or temple for many years to come, potentially becoming a cherished heirloom for future generations.</p>`,
-            image: './assets/images/blog2.jpg',
-            category: 'tips',
-            author: {
-                name: 'Priya Sharma',
-                avatar: './assets/images/author2.jpg',
-                title: 'Conservation Specialist'
-            },
-            date: '2023-07-22',
-            readTime: '6 min read',
-            featured: false
-        },
-        {
-            id: 3,
-            title: 'The Symbolism Behind Hindu Deities in Sculpture',
-            excerpt: 'Discover the deep symbolic meanings behind the postures, gestures, and attributes of Hindu deities in traditional sculpture.',
-            content: `<p>Hindu sculpture is rich with symbolism, with every aspect of a deity's representation—from posture to hand gestures to accompanying animals—carrying deep spiritual significance. Understanding these symbols can enhance your appreciation of these sacred art forms and help you choose pieces that resonate with your spiritual practice.</p>
+      image: "/assets/images/blog2.png",
+      category: "tips",
+      author: {
+        name: "Priya Sharma",
+        avatar: "/assets/images/author2.png",
+        title: "Conservation Specialist",
+      },
+      date: "2023-07-22",
+      readTime: "6 min read",
+      featured: false,
+    },
+    {
+      id: 3,
+      title: "The Symbolism Behind Hindu Deities in Sculpture",
+      excerpt:
+        "Discover the deep symbolic meanings behind the postures, gestures, and attributes of Hindu deities in traditional sculpture.",
+      content: `<p>Hindu sculpture is rich with symbolism, with every aspect of a deity's representation—from posture to hand gestures to accompanying animals—carrying deep spiritual significance. Understanding these symbols can enhance your appreciation of these sacred art forms and help you choose pieces that resonate with your spiritual practice.</p>
 
 <h3>Common Symbolic Elements</h3>
 
@@ -136,7 +142,7 @@ const Blog = ({ navigateTo }) => {
 <ul>
   <li><strong>Abhaya Mudra</strong> (palm facing outward, fingers pointing up) - Represents protection, peace, and the dispelling of fear</li>
   <li><strong>Varada Mudra</strong> (palm facing outward, fingers pointing down) - Symbolizes charity, compassion, and the granting of wishes</li>
-  <li><strong>Dhyana Mudra</strong> (hands folded in lap) - Represents meditation and concentration</li>
+  <li><strong>Dhyana Mudra</strong> (hands folded in lap) - Represents meditation and and concentration</li>
   <li><strong>Bhumisparsha Mudra</strong> (one hand touching the earth) - Seen in Buddha statues, symbolizing enlightenment</li>
 </ul>
 
@@ -148,7 +154,7 @@ const Blog = ({ navigateTo }) => {
   <li><strong>Nandi the Bull</strong> (Lord Shiva) - Represents strength, virility, and righteousness</li>
   <li><strong>Garuda the Eagle</strong> (Lord Vishnu) - Symbolizes speed, power, and the ability to soar above worldly concerns</li>
   <li><strong>Mouse</strong> (Lord Ganesha) - Represents the ability to overcome obstacles by gnawing through them</li>
-  <li><strong>Lion</strong> (Goddess Durga) - Symbolizes courage, strength, and royal authority</li>
+  <li><strong>Lion</strong> (Goddas Durga) - Symbolizes courage, strength, and royal authority</li>
 </ul>
 
 <h3>Specific Deity Symbolism</h3>
@@ -159,7 +165,7 @@ const Blog = ({ navigateTo }) => {
 
 <ul>
   <li><strong>Elephant head</strong> - Represents wisdom, understanding, and a discriminating intellect</li>
-  <li><strong>Large ears</strong> - Symbolize the importance of listening well and gaining knowledge</li>
+  <li><strong>Large ears</strong> - Symbolizes the importance of listening well and gaining knowledge</li>
   <li><strong>Small mouth</strong> - Represents the need to talk less and listen more</li>
   <li><strong>One broken tusk</strong> - Symbolizes sacrifice and the retention of both good and bad experiences</li>
   <li><strong>Modaka</strong> (sweet) in hand - Represents the rewards of spiritual life</li>
@@ -182,22 +188,23 @@ const Blog = ({ navigateTo }) => {
 <p>When selecting a deity statue for worship or display, consider both the artistic quality and the spiritual significance. At Vishnu Hastkala Kendra, our artisans create pieces that are not only beautiful but also adhere to traditional iconographic principles, ensuring that each statue carries the appropriate spiritual energy.</p>
 
 <p>Whether you're drawn to Ganesha as the remover of obstacles, Lakshmi as the bestower of prosperity, or Saraswati as the goddess of knowledge, understanding the symbolism behind these divine forms can help you forge a deeper connection with the spiritual principles they embody.</p>`,
-            image: './assets/images/blog3.jpg',
-            category: 'art',
-            author: {
-                name: 'Dr. Anand Mishra',
-                avatar: './assets/images/author3.jpg',
-                title: 'Art Historian'
-            },
-            date: '2023-06-30',
-            readTime: '10 min read',
-            featured: false
-        },
-        {
-            id: 4,
-            title: 'From Stone to Sculpture: The Process of Creating Marble Masterpieces',
-            excerpt: 'A behind-the-scenes look at how our skilled artisans transform raw marble into exquisite sculptures through traditional techniques.',
-            content: `<p>The transformation of a raw block of marble into a finely detailed sculpture is a process that combines ancient techniques with artistic vision. At Vishnu Hastkala Kendra, we maintain these traditional methods while creating pieces that speak to contemporary sensibilities. Here's a glimpse into our creative process.</p>
+      image: "/assets/images/blog3.png",
+      category: "art",
+      author: {
+        name: "Dr. Anand Mishra",
+        avatar: "/assets/images/author3.png",
+        title: "Art Historian",
+      },
+      date: "2023-06-30",
+      readTime: "10 min read",
+      featured: false,
+    },
+    {
+      id: 4,
+      title: "From Stone to Sculpture: The Process of Creating Marble Masterpieces",
+      excerpt:
+        "A behind-the-scenes look at how our skilled artisans transform raw marble into exquisite sculptures through traditional techniques.",
+      content: `<p>The transformation of a raw block of marble into a finely detailed sculpture is a process that combines ancient techniques with artistic vision. At Vishnu Hastkala Kendra, we maintain these traditional methods while creating pieces that speak to contemporary sensibilities. Here's a glimpse into our creative process.</p>
 
 <h3>1. Selecting the Stone</h3>
 
@@ -266,22 +273,23 @@ const Blog = ({ navigateTo }) => {
 <p>For religious statues, the creation process concludes with a traditional blessing ceremony. This ritual is believed to infuse the sculpture with divine energy, transforming it from a beautiful object into a sacred vessel for spiritual connection.</p>
 
 <p>Each marble sculpture that leaves our workshop represents not just hours of skilled craftsmanship, but a living tradition that connects contemporary devotees with ancient spiritual practices. When you bring one of our pieces into your home or temple, you're participating in a cultural and spiritual lineage that stretches back thousands of years.</p>`,
-            image: './assets/images/blog4.jpg',
-            category: 'craftsmanship',
-            author: {
-                name: 'Vikram Patel',
-                avatar: './assets/images/author4.jpg',
-                title: 'Senior Sculptor'
-            },
-            date: '2023-05-18',
-            readTime: '9 min read',
-            featured: false
-        },
-        {
-            id: 5,
-            title: 'Upcoming Exhibition: Divine Forms in Marble',
-            excerpt: 'Join us for a special exhibition showcasing our finest marble sculptures and meet the master artisans behind these creations.',
-            content: `<p>We are thrilled to announce our upcoming exhibition, "Divine Forms in Marble," a celebration of traditional Indian sculpture and craftsmanship. This special event will showcase our finest works and offer visitors a unique opportunity to meet the master artisans who create these timeless pieces.</p>
+      image: "/assets/images/blog4.png",
+      category: "craftsmanship",
+      author: {
+        name: "Vikram Patel",
+        avatar: "/assets/images/author4.png",
+        title: "Senior Sculptor",
+      },
+      date: "2023-05-18",
+      readTime: "9 min read",
+      featured: false,
+    },
+    {
+      id: 5,
+      title: "Upcoming Exhibition: Divine Forms in Marble",
+      excerpt:
+        "Join us for a special exhibition showcasing our finest marble sculptures and meet the master artisans behind these creations.",
+      content: `<p>We are thrilled to announce our upcoming exhibition, "Divine Forms in Marble," a celebration of traditional Indian sculpture and craftsmanship. This special event will showcase our finest works and offer visitors a unique opportunity to meet the master artisans who create these timeless pieces.</p>
 
 <h3>Exhibition Details</h3>
 
@@ -352,22 +360,23 @@ const Blog = ({ navigateTo }) => {
 Email: exhibition@vishnuhastkalakendra.com</p>
 
 <p>We look forward to welcoming you to this celebration of India's sculptural heritage and sharing our passion for this ancient art form with you.</p>`,
-            image: './assets/images/blog5.jpg',
-            category: 'news',
-            author: {
-                name: 'Meera Joshi',
-                avatar: './assets/images/author5.jpg',
-                title: 'Event Coordinator'
-            },
-            date: '2023-09-05',
-            readTime: '5 min read',
-            featured: false
-        },
-        {
-            id: 6,
-            title: 'Marble vs. Other Stone Materials: A Comparison Guide',
-            excerpt: 'Understanding the differences between marble, granite, sandstone, and other materials to help you choose the right stone for your needs.',
-            content: `<p>When selecting a stone sculpture or architectural element, the material choice significantly impacts the appearance, durability, and meaning of the piece. At Vishnu Hastkala Kendra, we primarily work with marble, but we also recognize the unique qualities of other stone materials. This guide will help you understand the differences between various stones and their suitability for different purposes.</p>
+      image: "/assets/images/blog5.png",
+      category: "news",
+      author: {
+        name: "Meera Joshi",
+        avatar: "/assets/images/author5.png",
+        title: "Event Coordinator",
+      },
+      date: "2023-09-05",
+      readTime: "5 min read",
+      featured: false,
+    },
+    {
+      id: 6,
+      title: "Marble vs. Other Stone Materials: A Comparison Guide",
+      excerpt:
+        "Understanding the differences between marble, granite, sandstone, and other materials to help you choose the right stone for your needs.",
+      content: `<p>When selecting a stone sculpture or architectural element, the material choice significantly impacts the appearance, durability, and meaning of the piece. At Vishnu Hastkala Kendra, we primarily work with marble, but we also recognize the unique qualities of other stone materials. This guide will help you understand the differences between various stones and their suitability for different purposes.</p>
 
 <h3>Marble: The Divine Stone</h3>
 
@@ -468,259 +477,256 @@ Email: exhibition@vishnuhastkalakendra.com</p>
 
 <p><strong>Budget:</strong> Fine white marble is generally more expensive than sandstone or local granites, with rare colored marbles commanding premium prices.</p>
 
-<h3>Our Recommendation</h3>
+<p><h3>Our Recommendation</h3></p>
 
 <p>At Vishnu Hastkala Kendra, we specialize in marble sculpture because we believe it offers the perfect balance of beauty, workability, and spiritual significance for religious and fine art pieces. However, we're happy to discuss other material options based on your specific needs and can recommend the most appropriate stone for your project.</p>
 
 <p>For deity statues intended for worship, we strongly recommend adhering to traditional material choices, as these are connected to the spiritual efficacy of the murti. For decorative pieces, we can be more flexible and creative with material selection.</p>
 
 <p>Visit our workshop to see and feel different stone samples in person, which is the best way to appreciate their unique qualities and make an informed decision.</p>`,
-            image: './assets/images/blog6.jpg',
-            category: 'craftsmanship',
-            author: {
-                name: 'Sunil Verma',
-                avatar: './assets/images/author6.jpg',
-                title: 'Materials Expert'
-            },
-            date: '2023-04-12',
-            readTime: '7 min read',
-            featured: false
-        }
-    ];
-    
-    // Set featured post and filter posts based on category and search query
-    useEffect(() => {
-        // Set featured post
-        const featured = blogPosts.find(post => post.featured);
-        setFeaturedPost(featured || blogPosts[0]);
-        
-        // Filter posts
-        let result = blogPosts;
-        
-        // Filter by category
-        if (selectedCategory !== 'all') {
-            result = result.filter(post => post.category === selectedCategory);
-        }
-        
-        // Filter by search query
-        if (searchQuery.trim() !== '') {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(post => 
-                post.title.toLowerCase().includes(query) || 
-                post.excerpt.toLowerCase().includes(query)
-            );
-        }
-        
-        setFilteredPosts(result);
-    }, [selectedCategory, searchQuery]);
-    
-    // Format date
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString('en-US', options);
-    };
-    
-    return (
-        <div>
-            {/* Hero Section */}
-            <section className="relative bg-dark text-white py-24">
-                <div className="absolute inset-0 bg-black opacity-70"></div>
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-3xl mx-auto text-center">
-                        <motion.h1 
-                            className="text-4xl md:text-5xl font-bold mb-6"
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            Our Blog
-                        </motion.h1>
-                        <motion.p 
-                            className="text-xl text-gray-300"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                        >
-                            Insights, stories, and expertise from the world of marble craftsmanship
-                        </motion.p>
-                    </div>
-                </div>
-            </section>
-            
-            {/* Featured Post */}
-            {featuredPost && (
-                <section className="py-16 bg-light">
-                    <div className="container mx-auto px-4">
-                        <div className="mb-12 text-center">
-                            <h2 className="text-3xl font-bold text-dark">Featured Article</h2>
-                        </div>
-                        <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-                            <div className="flex flex-col lg:flex-row">
-                                <div className="lg:w-1/2">
-                                    <img 
-                                        src={featuredPost.image} 
-                                        alt={featuredPost.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <div className="lg:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-                                    <div className="flex items-center mb-4">
-                                        <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full mr-3">
-                                            {categories.find(cat => cat.id === featuredPost.category)?.name}
-                                        </span>
-                                        <span className="text-gray-500 text-sm">{formatDate(featuredPost.date)} • {featuredPost.readTime}</span>
-                                    </div>
-                                    <h3 className="text-2xl md:text-3xl font-bold text-dark mb-4">{featuredPost.title}</h3>
-                                    <p className="text-gray-600 mb-6">{featuredPost.excerpt}</p>
-                                    <div className="flex items-center mb-6">
-                                        <img 
-                                            src={featuredPost.author.avatar} 
-                                            alt={featuredPost.author.name}
-                                            className="w-10 h-10 rounded-full mr-3"
-                                        />
-                                        <div>
-                                            <p className="font-medium text-dark">{featuredPost.author.name}</p>
-                                            <p className="text-sm text-gray-500">{featuredPost.author.title}</p>
-                                        </div>
-                                    </div>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="bg-primary text-white font-medium py-3 px-8 rounded-full hover:bg-accent transition-colors self-start"
-                                        onClick={() => {
-                                            // In a real app, this would navigate to the full blog post
-                                            // For this demo, we'll just show an alert
-                                            alert(`Reading full article: ${featuredPost.title}`);
-                                        }}
-                                    >
-                                        Read Full Article
-                                    </motion.button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-            
-            {/* Blog Posts Section */}
-            <section className="py-16">
-                <div className="container mx-auto px-4">
-                    {/* Search and Filter */}
-                    <div className="mb-12">
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                            {/* Categories */}
-                            <div className="flex flex-wrap gap-3">
-                                {categories.map(category => (
-                                    <motion.button
-                                        key={category.id}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === category.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                        onClick={() => setSelectedCategory(category.id)}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        {category.name}
-                                    </motion.button>
-                                ))}
-                            </div>
-                            
-                            {/* Search */}
-                            <div className="w-full md:w-auto">
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Search articles..."
-                                        className="w-full md:w-64 px-4 py-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Blog Posts Grid */}
-                    {filteredPosts.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {filteredPosts.map((post) => (
-                                <BlogPost 
-                                    key={post.id} 
-                                    post={post} 
-                                    formatDate={formatDate}
-                                    isSummary={true}
-                                    navigateTo={navigateTo}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-12">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <h3 className="text-xl font-bold text-gray-700 mb-2">No articles found</h3>
-                            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
-                            <button 
-                                className="mt-4 text-primary font-medium hover:underline"
-                                onClick={() => {
-                                    setSelectedCategory('all');
-                                    setSearchQuery('');
-                                }}
-                            >
-                                Clear filters
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </section>
-            
-            {/* Newsletter Section */}
-            <section className="py-16 bg-primary text-white">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-2xl mx-auto text-center">
-                        <motion.h2 
-                            className="text-3xl font-bold mb-6"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            Subscribe to Our Newsletter
-                        </motion.h2>
-                        <motion.p 
-                            className="text-xl mb-8"
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                        >
-                            Stay updated with our latest articles, events, and special offers
-                        </motion.p>
-                        <motion.div 
-                            className="flex flex-col md:flex-row gap-4"
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                        >
-                            <input 
-                                type="email" 
-                                placeholder="Your email address" 
-                                className="flex-grow px-4 py-3 rounded-full text-dark focus:outline-none focus:ring-2 focus:ring-accent"
-                            />
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="bg-accent text-white font-medium py-3 px-8 rounded-full hover:bg-dark transition-colors md:self-start"
-                            >
-                                Subscribe
-                            </motion.button>
-                        </motion.div>
-                        <p className="text-sm mt-4 text-gray-200">We respect your privacy. Unsubscribe at any time.</p>
-                    </div>
-                </div>
-            </section>
+      image: "/assets/images/blog6.png",
+      category: "craftsmanship",
+      author: {
+        name: "Sunil Verma",
+        avatar: "/assets/images/author6.png",
+        title: "Materials Expert",
+      },
+      date: "2023-04-12",
+      readTime: "7 min read",
+      featured: false,
+    },
+  ]
+
+  // Set featured post and filter posts based on category and search query
+  useEffect(() => {
+    // Set featured post
+    const featured = blogPosts.find((post) => post.featured)
+    setFeaturedPost(featured || blogPosts[0])
+
+    // Filter posts
+    let result = blogPosts
+
+    // Filter by category
+    if (selectedCategory !== "all") {
+      result = result.filter((post) => post.category === selectedCategory)
+    }
+
+    // Filter by search query
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(
+        (post) => post.title.toLowerCase().includes(query) || post.excerpt.toLowerCase().includes(query),
+      )
+    }
+
+    setFilteredPosts(result)
+  }, [selectedCategory, searchQuery, blogPosts])
+
+  // Format date
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "long", day: "numeric" }
+    return new Date(dateString).toLocaleDateString("en-US", options)
+  }
+
+  const navigateTo = (path) => {
+    navigate(path)
+  }
+
+  return (
+    <div>
+      {/* Hero Section */}
+      <section className="relative bg-dark text-white py-24">
+        <div className="absolute inset-0 bg-black opacity-70"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto text-center">
+            <motion.h1
+              className="text-4xl md:text-5xl font-bold mb-6"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Our Blog
+            </motion.h1>
+            <motion.p
+              className="text-xl text-gray-300"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              Insights, stories, and expertise from the world of marble craftsmanship
+            </motion.p>
+          </div>
         </div>
-    );
-};
+      </section>
+
+      {/* Featured Post */}
+      {featuredPost && (
+        <section className="py-16 bg-light">
+          <div className="container mx-auto px-4">
+            <div className="mb-12 text-center">
+              <h2 className="text-3xl font-bold text-dark">Featured Article</h2>
+            </div>
+            <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+              <div className="flex flex-col lg:flex-row">
+                <div className="lg:w-1/2">
+                  <img
+                    src={featuredPost.image || "/placeholder.svg?height=400&width=600&query=featured%20blog%20post"}
+                    alt={featuredPost.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="lg:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+                  <div className="flex items-center mb-4">
+                    <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full mr-3">
+                      {categories.find((cat) => cat.id === featuredPost.category)?.name}
+                    </span>
+                    <span className="text-gray-500 text-sm">
+                      {formatDate(featuredPost.date)} • {featuredPost.readTime}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-bold text-dark mb-4">{featuredPost.title}</h3>
+                  <p className="text-gray-600 mb-6">{featuredPost.excerpt}</p>
+                  <div className="flex items-center mb-6">
+                    <img
+                      src={featuredPost.author.avatar || "/placeholder.svg?height=40&width=40&query=author%20avatar"}
+                      alt={featuredPost.author.name}
+                      className="w-10 h-10 rounded-full mr-3"
+                    />
+                    <div>
+                      <p className="font-medium text-dark">{featuredPost.author.name}</p>
+                      <p className="text-sm text-gray-500">{featuredPost.author.title}</p>
+                    </div>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-primary text-white font-medium py-3 px-8 rounded-full hover:bg-accent transition-colors self-start"
+                    onClick={() => navigateTo(`/blog/${featuredPost.id}`)}
+                  >
+                    Read Full Article
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Blog Posts Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          {/* Search and Filter */}
+          <div className="mb-12">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              {/* Categories */}
+              <div className="flex flex-wrap gap-3">
+                {categories.map((category) => (
+                  <motion.button
+                    key={category.id}
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${
+                      selectedCategory === category.id
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                    onClick={() => setSelectedCategory(category.id)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {category.name}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <div className="w-full md:w-auto">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search articles..."
+                    className="w-full md:w-64 px-4 py-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Blog Posts Grid */}
+          {filteredPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPosts.map((post) => (
+                <BlogPost key={post.id} post={post} formatDate={formatDate} isSummary={true} navigateTo={navigateTo} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Frown className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-700 mb-2">No articles found</h3>
+              <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+              <button
+                className="mt-4 text-primary font-medium hover:underline"
+                onClick={() => {
+                  setSelectedCategory("all")
+                  setSearchQuery("")
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Newsletter Section */}
+      <section className="py-16 bg-primary text-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <motion.h2
+              className="text-3xl font-bold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              Subscribe to Our Newsletter
+            </motion.h2>
+            <motion.p
+              className="text-xl mb-8"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              Stay updated with our latest articles, events, and special offers
+            </motion.p>
+            <motion.div
+              className="flex flex-col md:flex-row gap-4"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="flex-grow px-4 py-3 rounded-full text-dark focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-accent text-white font-medium py-3 px-8 rounded-full hover:bg-dark transition-colors md:self-start"
+              >
+                Subscribe
+              </motion.button>
+            </motion.div>
+            <p className="text-sm mt-4 text-gray-200">We respect your privacy. Unsubscribe at any time.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default Blog
