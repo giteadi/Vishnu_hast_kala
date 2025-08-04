@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, Frown } from "lucide-react"
-import BlogPost from "../components/blog-post" // Corrected import path
+import BlogPost from "../components/BlogPost" 
 import { useNavigate } from "react-router-dom"
-import { blogPosts } from "../data/blog-data" // Import blogPosts data
+import { blogPosts } from "../data/blog-data" 
 
 const Blog = () => {
   const [selectedCategory, setSelectedCategory] = useState("all")

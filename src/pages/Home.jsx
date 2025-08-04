@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import ProductCard from "../components/ProductCard"
 import TestimonialCard from "../components/TestimonialCard"
+import Footer from "../components/Footer"
 
 const Home = ({ navigateTo }) => {
   const featuredProductsRef = useRef(null)
@@ -697,6 +698,7 @@ const Home = ({ navigateTo }) => {
           </motion.div>
         </div>
       </section>
+   
     </div>
   )
 }
