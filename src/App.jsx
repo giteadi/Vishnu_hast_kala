@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {  Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom"; 
 import { motion } from "framer-motion";
 
 import Navbar from "./components/Navbar";
@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // ✅ Get the navigate function
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
@@ -39,23 +40,21 @@ const App = () => {
   }
 
   return (
-  
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="*" element={<Home />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-  
+    <div className="min-h-screen flex flex-col">
+      <Navbar /> 
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
   );
 };
 

@@ -1,6 +1,7 @@
 // Products.js - Products page component
 
-const { useState, useEffect } = "React";
+import React, { useState, useEffect } from "react";
+import ProductCard from "../components/ProductCard";
 import { motion } from 'framer-motion';
 
 
