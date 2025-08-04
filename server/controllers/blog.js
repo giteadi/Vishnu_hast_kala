@@ -1,322 +1,244 @@
-const Blog = require('../models/blog');
-const cloudinary = require('../config/cloudinary');
+const { db } = require("../config/db") 
+const cloudinary = require("../cloudinary")
 
-/**
- * Blog controller with request handlers
- */
-const blogController = {
-  /**
-   * Create a new blog post
-   * @route POST /api/blogs
-   * @access Admin
-   */
-  createBlog: async (req, res) => {
-    try {
-      const { title, slug, content, image_url, status, featured, categories } = req.body;
-      const author_id = req.user.id;
-      
-      // Validate required fields
-      if (!title || !content) {
-        return res.status(400).json({ message: 'Title and content are required' });
-      }
-      
-      // Generate slug if not provided
-      const finalSlug = slug || title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
-      
-      // Create blog post
-      const blog = await Blog.create({
-        title,
-        slug: finalSlug,
-        content,
-        image_url,
-        author_id,
-        status,
-        featured,
-        categories
-      });
-      
-      res.status(201).json(blog);
-    } catch (error) {
-      console.error('Create blog error:', error.message);
-      res.status(500).json({ message: 'Server error while creating blog post' });
+// Helper function to fetch blog with images
+const getBlogWithImages = (blogId, callback) => {
+  db.query("SELECT * FROM blogs WHERE id = ?", [blogId], (err, blogResults) => {
+    if (err) return callback(err)
+    if (blogResults.length === 0) return callback(null, null)
+
+    const blog = blogResults[0]
+    db.query(
+      "SELECT id, image_url, cloudinary_id FROM blog_images WHERE blog_id = ?",
+      [blogId],
+      (err, imageResults) => {
+        if (err) return callback(err)
+        blog.images = imageResults
+        callback(null, blog)
+      },
+    )
+  })
+}
+
+// Get all blogs
+exports.getAllBlogs = (req, res) => {
+  db.query("SELECT * FROM blogs", (err, blogs) => {
+    if (err) {
+      console.error("Error fetching blogs:", err)
+      return res.status(500).json({ message: "Error fetching blogs", error: err.message })
     }
-  },
-  
-  /**
-   * Get all blog posts with filtering and pagination
-   * @route GET /api/blogs
-   * @access Public
-   */
-  getBlogs: async (req, res) => {
-    try {
-      const { 
-        status, 
-        featured, 
-        category_id, 
-        author_id, 
-        search,
-        limit = 10,
-        page = 1
-      } = req.query;
-      
-      // Calculate offset
-      const offset = (page - 1) * limit;
-      
-      // Build filters
-      const filters = {};
-      
-      // If not admin and not explicitly requesting drafts, only show published
-      if (!req.user || req.user.role !== 'admin') {
-        filters.status = 'published';
-      } else if (status) {
-        filters.status = status;
-      }
-      
-      if (featured === 'true') filters.featured = true;
-      if (category_id) filters.category_id = parseInt(category_id);
-      if (author_id) filters.author_id = parseInt(author_id);
-      if (search) filters.search = search;
-      
-      // Get blogs
-      const result = await Blog.findAll(
-        filters,
-        parseInt(limit),
-        offset
-      );
-      
-      res.json({
-        blogs: result.blogs,
-        pagination: {
-          ...result.pagination,
-          page: parseInt(page)
+
+    if (blogs.length === 0) {
+      return res.status(200).json([])
+    }
+
+    const blogsWithImages = []
+    let completed = 0
+
+    blogs.forEach((blog, index) => {
+      db.query("SELECT id, image_url, cloudinary_id FROM blog_images WHERE blog_id = ?", [blog.id], (err, images) => {
+        if (err) {
+          console.error("Error fetching images for blog:", err)
+          // Continue even if image fetching fails for one blog
         }
-      });
-    } catch (error) {
-      console.error('Get blogs error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching blogs' });
-    }
-  },
-  
-  /**
-   * Get featured blog posts
-   * @route GET /api/blogs/featured
-   * @access Public
-   */
-  getFeaturedBlogs: async (req, res) => {
-    try {
-      const limit = req.query.limit || 5;
-      
-      const blogs = await Blog.getFeatured(parseInt(limit));
-      
-      res.json(blogs);
-    } catch (error) {
-      console.error('Get featured blogs error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching featured blogs' });
-    }
-  },
-  
-  /**
-   * Get blog post by ID
-   * @route GET /api/blogs/:id
-   * @access Mixed
-   */
-  getBlogById: async (req, res) => {
-    try {
-      const blogId = req.params.id;
-      
-      const blog = await Blog.findById(blogId);
-      if (!blog) {
-        return res.status(404).json({ message: 'Blog post not found' });
-      }
-      
-      // If blog is draft and user is not admin, deny access
-      if (blog.status === 'draft' && (!req.user || req.user.role !== 'admin')) {
-        return res.status(403).json({ message: 'Not authorized to view this blog post' });
-      }
-      
-      res.json(blog);
-    } catch (error) {
-      console.error('Get blog by ID error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching blog post' });
-    }
-  },
-  
-  /**
-   * Get blog post by slug
-   * @route GET /api/blogs/slug/:slug
-   * @access Mixed
-   */
-  getBlogBySlug: async (req, res) => {
-    try {
-      const slug = req.params.slug;
-      
-      const blog = await Blog.findBySlug(slug);
-      if (!blog) {
-        return res.status(404).json({ message: 'Blog post not found' });
-      }
-      
-      // If blog is draft and user is not admin, deny access
-      if (blog.status === 'draft' && (!req.user || req.user.role !== 'admin')) {
-        return res.status(403).json({ message: 'Not authorized to view this blog post' });
-      }
-      
-      res.json(blog);
-    } catch (error) {
-      console.error('Get blog by slug error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching blog post' });
-    }
-  },
-  
-  /**
-   * Update blog post
-   * @route PUT /api/blogs/:id
-   * @access Admin
-   */
-  updateBlog: async (req, res) => {
-    try {
-      const blogId = req.params.id;
-      const { title, slug, content, image_url, status, featured, categories } = req.body;
-      
-      // Check if blog exists
-      const existingBlog = await Blog.findById(blogId);
-      if (!existingBlog) {
-        return res.status(404).json({ message: 'Blog post not found' });
-      }
-      
-      // Generate slug if title changed and slug not provided
-      let finalSlug = slug;
-      if (title && title !== existingBlog.title && !slug) {
-        finalSlug = title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
-      }
-      
-      // Update blog post
-      const updatedBlog = await Blog.update(blogId, {
-        title,
-        slug: finalSlug,
-        content,
-        image_url,
-        status,
-        featured,
-        categories
-      });
-      
-      res.json(updatedBlog);
-    } catch (error) {
-      console.error('Update blog error:', error.message);
-      res.status(500).json({ message: 'Server error while updating blog post' });
-    }
-  },
-  
-  /**
-   * Delete blog post
-   * @route DELETE /api/blogs/:id
-   * @access Admin
-   */
-  deleteBlog: async (req, res) => {
-    try {
-      const blogId = req.params.id;
-      
-      // Check if blog exists
-      const existingBlog = await Blog.findById(blogId);
-      if (!existingBlog) {
-        return res.status(404).json({ message: 'Blog post not found' });
-      }
-      
-      // Delete blog image from Cloudinary if exists
-      if (existingBlog.image_url && existingBlog.image_url.includes('cloudinary')) {
-        try {
-          // Extract public_id from Cloudinary URL
-          const publicId = existingBlog.image_url.split('/').pop().split('.')[0];
-          await cloudinary.uploader.destroy(publicId);
-        } catch (cloudinaryError) {
-          console.error('Error deleting image from Cloudinary:', cloudinaryError);
-          // Continue with blog deletion even if image deletion fails
+        blog.images = images || []
+        blogsWithImages.push(blog)
+        completed++
+
+        if (completed === blogs.length) {
+          res.status(200).json(blogsWithImages)
         }
-      }
-      
-      // Delete blog post
-      await Blog.delete(blogId);
-      
-      res.json({ message: 'Blog post deleted successfully' });
-    } catch (error) {
-      console.error('Delete blog error:', error.message);
-      res.status(500).json({ message: 'Server error while deleting blog post' });
+      })
+    })
+  })
+}
+
+// Get blog by ID
+exports.getBlogById = (req, res) => {
+  const { id } = req.params
+  getBlogWithImages(id, (err, blog) => {
+    if (err) {
+      console.error("Error fetching blog:", err)
+      return res.status(500).json({ message: "Error fetching blog", error: err.message })
     }
-  },
-  
-  /**
-   * Create a new blog category
-   * @route POST /api/blogs/categories
-   * @access Admin
-   */
-  createCategory: async (req, res) => {
-    try {
-      const { name } = req.body;
-      
-      if (!name) {
-        return res.status(400).json({ message: 'Category name is required' });
-      }
-      
-      const category = await Blog.createCategory(name);
-      
-      res.status(201).json(category);
-    } catch (error) {
-      console.error('Create category error:', error.message);
-      res.status(500).json({ message: 'Server error while creating category' });
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" })
     }
-  },
-  
-  /**
-   * Get all blog categories
-   * @route GET /api/blogs/categories
-   * @access Public
-   */
-  getCategories: async (req, res) => {
-    try {
-      const categories = await Blog.getAllCategories();
-      res.json(categories);
-    } catch (error) {
-      console.error('Get categories error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching categories' });
-    }
-  },
-  
-  /**
-   * Delete blog category
-   * @route DELETE /api/blogs/categories/:id
-   * @access Admin
-   */
-  deleteCategory: async (req, res) => {
-    try {
-      const categoryId = req.params.id;
-      
-      const result = await Blog.deleteCategory(categoryId);
-      
-      if (!result) {
-        return res.status(404).json({ message: 'Category not found' });
-      }
-      
-      res.json({ message: 'Category deleted successfully' });
-    } catch (error) {
-      console.error('Delete category error:', error.message);
-      res.status(500).json({ message: 'Server error while deleting category' });
-    }
-  },
-  
-  /**
-   * Get blog statistics (admin only)
-   * @route GET /api/blogs/stats
-   * @access Admin
-   */
-  getBlogStats: async (req, res) => {
-    try {
-      const stats = await Blog.getStats();
-      res.json(stats);
-    } catch (error) {
-      console.error('Get blog stats error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching blog statistics' });
-    }
+    res.status(200).json(blog)
+  })
+}
+
+// Create new blog
+exports.createBlog = (req, res) => {
+  const { title, author, date, status } = req.body
+
+  if (!title || !author || !date) {
+    return res.status(400).json({ message: "Title, author, and date are required" })
   }
-};
 
-module.exports = blogController;
+  const newBlog = { title, author, date, status }
+  db.query("INSERT INTO blogs SET ?", newBlog, (err, result) => {
+    if (err) {
+      console.error("Error creating blog:", err)
+      return res.status(500).json({ message: "Error creating blog", error: err.message })
+    }
+    res.status(201).json({ message: "Blog created successfully", blogId: result.insertId })
+  })
+}
+
+// Update blog
+exports.updateBlog = (req, res) => {
+  const { id } = req.params
+  const { title, author, date, status } = req.body
+  const updatedBlog = { title, author, date, status }
+
+  db.query("UPDATE blogs SET ? WHERE id = ?", [updatedBlog, id], (err, result) => {
+    if (err) {
+      console.error("Error updating blog:", err)
+      return res.status(500).json({ message: "Error updating blog", error: err.message })
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Blog not found" })
+    }
+    res.status(200).json({ message: "Blog updated successfully" })
+  })
+}
+
+// Delete blog
+exports.deleteBlog = (req, res) => {
+  const { id } = req.params
+
+  // First, get all images associated with the blog to delete from Cloudinary
+  db.query("SELECT cloudinary_id FROM blog_images WHERE blog_id = ?", [id], (err, images) => {
+    if (err) {
+      console.error("Error fetching blog images for deletion:", err)
+      return res.status(500).json({ message: "Error deleting blog", error: err.message })
+    }
+
+    // Delete images from Cloudinary
+    const deletePromises = images.map((image) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.destroy(image.cloudinary_id, (error, result) => {
+          if (error) {
+            console.error(`Error deleting image ${image.cloudinary_id} from Cloudinary:`, error)
+            // Don't reject, just log and continue, as blog deletion is primary
+            resolve()
+          } else {
+            console.log(`Cloudinary image ${image.cloudinary_id} deleted:`, result)
+            resolve()
+          }
+        })
+      })
+    })
+
+    Promise.all(deletePromises)
+      .then(() => {
+        // Then, delete the blog (and its images from DB via CASCADE)
+        db.query("DELETE FROM blogs WHERE id = ?", [id], (err, result) => {
+          if (err) {
+            console.error("Error deleting blog:", err)
+            return res.status(500).json({ message: "Error deleting blog", error: err.message })
+          }
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Blog not found" })
+          }
+          res.status(200).json({ message: "Blog and associated images deleted successfully" })
+        })
+      })
+      .catch((error) => {
+        console.error("Error during Cloudinary image deletion process:", error)
+        res.status(500).json({ message: "Error deleting blog images", error: error.message })
+      })
+  })
+}
+
+// Upload blog image
+exports.uploadBlogImage = (req, res) => {
+  const { blogId } = req.params
+
+  if (!req.files || Object.keys(req.files).length === 0 || !req.files.image) {
+    return res.status(400).json({ message: "No image file provided" })
+  }
+
+  const imageFile = req.files.image
+
+  // Check file type
+  const filetypes = /jpeg|jpg|png|gif/
+  const extname = filetypes.test(imageFile.name.toLowerCase())
+  const mimetype = filetypes.test(imageFile.mimetype)
+
+  if (!mimetype || !extname) {
+    return res.status(400).json({ message: "Only image files (jpg, jpeg, png, gif) are allowed!" })
+  }
+
+  // Check if blog exists
+  db.query("SELECT id FROM blogs WHERE id = ?", [blogId], (err, results) => {
+    if (err) {
+      console.error("Error checking blog existence:", err)
+      return res.status(500).json({ message: "Error uploading image", error: err.message })
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Blog not found" })
+    }
+
+    // Upload to Cloudinary using tempFilePath
+    cloudinary.uploader.upload(imageFile.tempFilePath, { folder: "blog_images" }, (error, result) => {
+      if (error) {
+        console.error("Cloudinary upload error:", error)
+        return res.status(500).json({ message: "Image upload failed", error: error.message })
+      }
+
+      const imageUrl = result.secure_url
+      const cloudinaryId = result.public_id
+
+      db.query(
+        "INSERT INTO blog_images (blog_id, image_url, cloudinary_id) VALUES (?, ?, ?)",
+        [blogId, imageUrl, cloudinaryId],
+        (err, dbResult) => {
+          if (err) {
+            console.error("Error saving image to DB:", err)
+            // Optionally delete from Cloudinary if DB save fails
+            cloudinary.uploader.destroy(cloudinaryId, () => {})
+            return res.status(500).json({ message: "Error saving image to database", error: err.message })
+          }
+          res
+            .status(201)
+            .json({ message: "Image uploaded and saved successfully", imageId: dbResult.insertId, imageUrl })
+        },
+      )
+    })
+  })
+}
+
+// Delete blog image
+exports.deleteBlogImage = (req, res) => {
+  const { imageId } = req.params
+
+  db.query("SELECT cloudinary_id FROM blog_images WHERE id = ?", [imageId], (err, results) => {
+    if (err) {
+      console.error("Error fetching image for deletion:", err)
+      return res.status(500).json({ message: "Error deleting image", error: err.message })
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Image not found" })
+    }
+
+    const { cloudinary_id } = results[0]
+
+    cloudinary.uploader.destroy(cloudinary_id, (error, result) => {
+      if (error) {
+        console.error("Cloudinary deletion error:", error)
+        return res.status(500).json({ message: "Image deletion from Cloudinary failed", error: error.message })
+      }
+      console.log("Cloudinary deletion result:", result)
+
+      db.query("DELETE FROM blog_images WHERE id = ?", [imageId], (err, dbResult) => {
+        if (err) {
+          console.error("Error deleting image from DB:", err)
+          return res.status(500).json({ message: "Error deleting image from database", error: err.message })
+        }
+        res.status(200).json({ message: "Image deleted successfully" })
+      })
+    })
+  })
+}

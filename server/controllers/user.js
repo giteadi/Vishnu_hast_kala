@@ -1,304 +1,113 @@
-const User = require('../models/user');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { db } = require("../config/db")
+const bcrypt = require("bcryptjs")
 
-/**
- * User controller with request handlers
- */
-const userController = {
-  /**
-   * Register a new user
-   * @route POST /api/users/register
-   * @access Public
-   */
-  register: async (req, res) => {
-    try {
-      const { name, email, password, phone, address } = req.body;
-      
-      // Check if user already exists
-      const existingUser = await User.findByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ message: 'User already exists with this email' });
+// Get all users
+exports.getAllUsers = (req, res) => {
+  db.query(
+    "SELECT id, name, email, phone, address, role, profile_image, created_at, updated_at FROM users",
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching users:", err)
+        return res.status(500).json({ message: "Error fetching users", error: err.message })
       }
-      
-      // Create new user
-      const user = await User.create({
-        name,
-        email,
-        password,
-        phone,
-        address,
-        role: 'customer' // Default role
-      });
-      
-      // Generate token
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '30d' }
-      );
-      
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = user;
-      
-      res.status(201).json({
-        ...userWithoutPassword,
-        token
-      });
-    } catch (error) {
-      console.error('Registration error:', error.message);
-      res.status(500).json({ message: 'Server error during registration' });
-    }
-  },
-  
-  /**
-   * Login user
-   * @route POST /api/users/login
-   * @access Public
-   */
-  login: async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      // Find user by email
-      const user = await User.findByEmail(email);
-      if (!user) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+      res.status(200).json(results)
+    },
+  )
+}
+
+// Get user by ID
+exports.getUserById = (req, res) => {
+  const { id } = req.params
+  db.query(
+    "SELECT id, name, email, phone, address, role, profile_image, created_at, updated_at FROM users WHERE id = ?",
+    [id],
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching user:", err)
+        return res.status(500).json({ message: "Error fetching user", error: err.message })
       }
-      
-      // Verify password
-      const isPasswordValid = await User.verifyPassword(user.id, password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+      if (results.length === 0) {
+        return res.status(404).json({ message: "User not found" })
       }
-      
-      // Generate token
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '30d' }
-      );
-      
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = user;
-      
-      res.json({
-        ...userWithoutPassword,
-        token
-      });
-    } catch (error) {
-      console.error('Login error:', error.message);
-      res.status(500).json({ message: 'Server error during login' });
-    }
-  },
-  
-  /**
-   * Get user profile
-   * @route GET /api/users/profile
-   * @access Private
-   */
-  getProfile: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-      
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Get profile error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching profile' });
-    }
-  },
-  
-  /**
-   * Update user profile
-   * @route PUT /api/users/profile
-   * @access Private
-   */
-  updateProfile: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { name, phone, address } = req.body;
-      
-      // Check if user exists
-      const existingUser = await User.findById(userId);
-      if (!existingUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      // Update user
-      const updatedUser = await User.update(userId, {
-        name,
-        phone,
-        address
-      });
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = updatedUser;
-      
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Update profile error:', error.message);
-      res.status(500).json({ message: 'Server error while updating profile' });
-    }
-  },
-  
-  /**
-   * Change password
-   * @route PUT /api/users/password
-   * @access Private
-   */
-  changePassword: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { currentPassword, newPassword } = req.body;
-      
-      // Verify current password
-      const isPasswordValid = await User.verifyPassword(userId, currentPassword);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: 'Current password is incorrect' });
-      }
-      
-      // Update password
-      await User.updatePassword(userId, newPassword);
-      
-      res.json({ message: 'Password updated successfully' });
-    } catch (error) {
-      console.error('Change password error:', error.message);
-      res.status(500).json({ message: 'Server error while changing password' });
-    }
-  },
-  
-  /**
-   * Get all users (admin only)
-   * @route GET /api/users
-   * @access Admin
-   */
-  getAllUsers: async (req, res) => {
-    try {
-      const users = await User.findAll();
-      
-      // Remove passwords from response
-      const usersWithoutPasswords = users.map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
-      
-      res.json(usersWithoutPasswords);
-    } catch (error) {
-      console.error('Get all users error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching users' });
-    }
-  },
-  
-  /**
-   * Get user by ID (admin only)
-   * @route GET /api/users/:id
-   * @access Admin
-   */
-  getUserById: async (req, res) => {
-    try {
-      const userId = req.params.id;
-      
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-      
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Get user by ID error:', error.message);
-      res.status(500).json({ message: 'Server error while fetching user' });
-    }
-  },
-  
-  /**
-   * Update user (admin only)
-   * @route PUT /api/users/:id
-   * @access Admin
-   */
-  updateUser: async (req, res) => {
-    try {
-      const userId = req.params.id;
-      const { name, email, phone, address, role } = req.body;
-      
-      // Check if user exists
-      const existingUser = await User.findById(userId);
-      if (!existingUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      // If email is being changed, check if it's already in use
-      if (email && email !== existingUser.email) {
-        const userWithEmail = await User.findByEmail(email);
-        if (userWithEmail) {
-          return res.status(400).json({ message: 'Email is already in use' });
-        }
-      }
-      
-      // Update user
-      const updatedUser = await User.update(userId, {
-        name,
-        email,
-        phone,
-        address,
-        role
-      });
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = updatedUser;
-      
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Update user error:', error.message);
-      res.status(500).json({ message: 'Server error while updating user' });
-    }
-  },
-  
-  /**
-   * Delete user (admin only)
-   * @route DELETE /api/users/:id
-   * @access Admin
-   */
-  deleteUser: async (req, res) => {
-    try {
-      const userId = req.params.id;
-      
-      // Check if user exists
-      const existingUser = await User.findById(userId);
-      if (!existingUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      // Prevent deleting the last admin
-      if (existingUser.role === 'admin') {
-        const [adminUsers] = await pool.query(
-          'SELECT COUNT(*) as count FROM users WHERE role = "admin"'
-        );
-        
-        if (adminUsers[0].count <= 1) {
-          return res.status(400).json({ message: 'Cannot delete the last admin user' });
-        }
-      }
-      
-      // Delete user
-      await User.delete(userId);
-      
-      res.json({ message: 'User deleted successfully' });
-    } catch (error) {
-      console.error('Delete user error:', error.message);
-      res.status(500).json({ message: 'Server error while deleting user' });
-    }
+      res.status(200).json(results[0])
+    },
+  )
+}
+
+// Create new user
+exports.createUser = (req, res) => {
+  const { name, email, phone, address, password, role } = req.body
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: "Name, email, and password are required" })
   }
-};
 
-module.exports = userController;
+  bcrypt.hash(password, 10, (err, hashedPassword) => {
+    if (err) {
+      console.error("Error hashing password:", err)
+      return res.status(500).json({ message: "Error creating user", error: err.message })
+    }
+
+    const newUser = { name, email, phone, address, password: hashedPassword, role }
+    db.query("INSERT INTO users SET ?", newUser, (err, result) => {
+      if (err) {
+        console.error("Error creating user:", err)
+        return res.status(500).json({ message: "Error creating user", error: err.message })
+      }
+      res.status(201).json({ message: "User created successfully", userId: result.insertId })
+    })
+  })
+}
+
+// Update user
+exports.updateUser = (req, res) => {
+  const { id } = req.params
+  const { name, email, phone, address, password, role, profile_image } = req.body
+  const updatedUser = { name, email, phone, address, role, profile_image }
+
+  if (password) {
+    bcrypt.hash(password, 10, (err, hashedPassword) => {
+      if (err) {
+        console.error("Error hashing password:", err)
+        return res.status(500).json({ message: "Error updating user", error: err.message })
+      }
+      updatedUser.password = hashedPassword
+      db.query("UPDATE users SET ? WHERE id = ?", [updatedUser, id], (err, result) => {
+        if (err) {
+          console.error("Error updating user:", err)
+          return res.status(500).json({ message: "Error updating user", error: err.message })
+        }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "User not found" })
+        }
+        res.status(200).json({ message: "User updated successfully" })
+      })
+    })
+  } else {
+    db.query("UPDATE users SET ? WHERE id = ?", [updatedUser, id], (err, result) => {
+      if (err) {
+        console.error("Error updating user:", err)
+        return res.status(500).json({ message: "Error updating user", error: err.message })
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      res.status(200).json({ message: "User updated successfully" })
+    })
+  }
+}
+
+// Delete user
+exports.deleteUser = (req, res) => {
+  const { id } = req.params
+  db.query("DELETE FROM users WHERE id = ?", [id], (err, result) => {
+    if (err) {
+      console.error("Error deleting user:", err)
+      return res.status(500).json({ message: "Error deleting user", error: err.message })
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" })
+    }
+    res.status(200).json({ message: "User deleted successfully" })
+  })
+}
